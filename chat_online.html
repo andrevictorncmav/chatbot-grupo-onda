@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot IA - Grupo Onda</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 1400px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .upload-section {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: center;
+            border: 2px dashed rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-section:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .upload-section.dragover {
+            background: rgba(255,255,255,0.3);
+            border-color: white;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .select-file-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .select-file-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .status-section {
+            flex-grow: 1;
+        }
+
+        .status-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .status-item h3 {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .status-item p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online {
+            background: #4CAF50;
+        }
+
+        .status-offline {
+            background: #f44336;
+        }
+
+        .nav-links {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .nav-links a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 10px 0;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .chat-header h2 {
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            font-size: 1em;
+            line-height: 1.5;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.assistant .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            order: 1;
+        }
+
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .sources-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .sources-title {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .source-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            font-size: 0.85em;
+        }
+
+        .source-similarity {
+            color: #4facfe;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+
+        .chat-input-area {
+            background: white;
+            padding: 20px 30px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 25px;
+            padding: 5px;
+            border: 2px solid #e9ecef;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-container:focus-within {
+            border-color: #4facfe;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 15px 20px;
+            font-size: 1em;
+            outline: none;
+            resize: none;
+            max-height: 120px;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 20px;
+            border-bottom-left-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+            max-width: 70%;
+        }
+
+        .typing-dots {
+            display: flex;
+            align-items: center;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4facfe;
+            margin: 0 2px;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .upload-progress {
+            display: none;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: white;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #4CAF50;
+        }
+
+        .notification.error {
+            background: #f44336;
+        }
+
+        .suggested-questions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .suggested-question {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .suggested-question:hover {
+            background: #1976d2;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 100vh;
+                border-radius: 0;
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                padding: 20px;
+            }
+
+            .chat-area {
+                flex: 1;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="sidebar">
+            <div class="logo">
+                <h1>🤖 Chatbot IA</h1>
+                <p>Grupo Onda</p>
+            </div>
+
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-icon">📄</div>
+                <div class="upload-text">Upload de Documento</div>
+                <div class="upload-hint">Clique ou arraste PDF ou CSV (máx. 16MB)</div>
+                <button class="select-file-btn" onclick="document.getElementById('fileInput').click()">
+                    Selecionar Arquivo
+                </button>
+                <input type="file" id="fileInput" class="file-input" accept=".pdf,.csv">
+                
+                <div class="upload-progress" id="uploadProgress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Processando...</div>
+                </div>
+            </div>
+
+            <div class="status-section">
+                <div class="status-item">
+                    <h3><span class="status-indicator status-online"></span>Sistema</h3>
+                    <p id="systemStatus">Online</p>
+                </div>
+                
+                <div class="status-item">
+                    <h3><span class="status-indicator" id="docIndicator"></span>Documento</h3>
+                    <p id="docStatus">Nenhum documento carregado</p>
+                </div>
+                
+                <div class="status-item">
+                    <h3><span class="status-indicator" id="aiIndicator"></span>IA</h3>
+                    <p id="aiStatus">Verificando...</p>
+                </div>
+            </div>
+
+            <div class="nav-links">
+                <a href="/history">📚 Histórico de Documentos</a>
+                <a href="/status" target="_blank">📊 Status do Sistema</a>
+            </div>
+        </div>
+
+        <div class="chat-area">
+            <div class="chat-header">
+                <h2>Assistente Inteligente</h2>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message assistant">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <div>👋 Olá! Sou o assistente inteligente do Grupo Onda.</div>
+                        <br>
+                        <div>Faça upload de um documento (PDF ou CSV) e depois me faça perguntas sobre o conteúdo. Uso tecnologia avançada de busca TF-IDF para encontrar as informações mais relevantes!</div>
+                        
+                        <div class="suggested-questions">
+                            <div class="suggested-question" onclick="sendSuggestedQuestion('Quais são os principais serviços oferecidos?')">
+                                Quais são os principais serviços oferecidos?
+                            </div>
+                            <div class="suggested-question" onclick="sendSuggestedQuestion('Me fale sobre a empresa')">
+                                Me fale sobre a empresa
+                            </div>
+                            <div class="suggested-question" onclick="sendSuggestedQuestion('Quais são os contatos disponíveis?')">
+                                Quais são os contatos disponíveis?
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="message-avatar">🤖</div>
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <div class="input-container">
+                    <textarea 
+                        id="chatInput" 
+                        class="chat-input" 
+                        placeholder="Digite sua pergunta aqui..."
+                        rows="1"
+                    ></textarea>
+                    <button id="sendButton" class="send-button" onclick="sendMessage()">
+                        ➤
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        let isProcessing = false;
+        let hasDocument = false;
+
+        // Inicializar sistema
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSystemStatus();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Upload de arquivo
+            const fileInput = document.getElementById('fileInput');
+            const uploadSection = document.getElementById('uploadSection');
+            const chatInput = document.getElementById('chatInput');
+
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Drag and drop
+            uploadSection.addEventListener('dragover', handleDragOver);
+            uploadSection.addEventListener('dragleave', handleDragLeave);
+            uploadSection.addEventListener('drop', handleFileDrop);
+
+            // Enter para enviar mensagem
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Auto-resize textarea
+            chatInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.getElementById('uploadSection').classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            document.getElementById('uploadSection').classList.remove('dragover');
+        }
+
+        function handleFileDrop(e) {
+            e.preventDefault();
+            document.getElementById('uploadSection').classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFileUpload(file);
+            }
+        }
+
+        async function handleFileUpload(file) {
+            if (isProcessing) return;
+
+            // Validar arquivo
+            const allowedTypes = ['application/pdf', 'text/csv'];
+            if (!allowedTypes.includes(file.type) && !file.name.toLowerCase().endsWith('.pdf') && !file.name.toLowerCase().endsWith('.csv')) {
+                showNotification('Tipo de arquivo não suportado. Use PDF ou CSV.', 'error');
+                return;
+            }
+
+            if (file.size > 16 * 1024 * 1024) {
+                showNotification('Arquivo muito grande. Máximo 16MB.', 'error');
+                return;
+            }
+
+            isProcessing = true;
+            showUploadProgress(true);
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    hasDocument = true;
+                    updateDocumentStatus(`${result.filename} (${result.chunks_count} chunks)`);
+                    showNotification(`Documento processado: ${result.chunks_count} chunks criados`, 'success');
+                    
+                    // Adicionar mensagem no chat
+                    addMessage('system', `✅ Documento "${result.filename}" processado com sucesso! ${result.chunks_count} chunks criados. Agora você pode fazer perguntas sobre o conteúdo.`);
+                } else {
+                    showNotification(`Erro: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Erro no upload:', error);
+                showNotification('Erro ao processar arquivo', 'error');
+            } finally {
+                isProcessing = false;
+                showUploadProgress(false);
+                document.getElementById('fileInput').value = '';
+            }
+        }
+
+        function showUploadProgress(show) {
+            const progress = document.getElementById('uploadProgress');
+            if (show) {
+                progress.style.display = 'block';
+                // Simular progresso
+                let width = 0;
+                const interval = setInterval(() => {
+                    width += Math.random() * 30;
+                    if (width >= 90) {
+                        clearInterval(interval);
+                        width = 90;
+                    }
+                    document.getElementById('progressFill').style.width = width + '%';
+                }, 200);
+            } else {
+                progress.style.display = 'none';
+                document.getElementById('progressFill').style.width = '0%';
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message || isProcessing) return;
+
+            if (!hasDocument) {
+                showNotification('Faça upload de um documento primeiro', 'error');
+                return;
+            }
+
+            // Adicionar mensagem do usuário
+            addMessage('user', message);
+            input.value = '';
+            input.style.height = 'auto';
+
+            // Mostrar indicador de digitação
+            showTypingIndicator(true);
+            isProcessing = true;
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addMessage('assistant', result.response, result.sources);
+                } else {
+                    addMessage('assistant', `Desculpe, ocorreu um erro: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Erro no chat:', error);
+                addMessage('assistant', 'Desculpe, ocorreu um erro interno. Tente novamente.');
+            } finally {
+                showTypingIndicator(false);
+                isProcessing = false;
+            }
+        }
+
+        function sendSuggestedQuestion(question) {
+            document.getElementById('chatInput').value = question;
+            sendMessage();
+        }
+
+        function addMessage(type, content, sources = null) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+
+            let avatar = type === 'user' ? '👤' : '🤖';
+            if (type === 'system') {
+                avatar = '⚙️';
+                messageDiv.className = 'message assistant';
+            }
+
+            let sourcesHtml = '';
+            if (sources && sources.length > 0) {
+                sourcesHtml = `
+                    <div class="sources-section">
+                        <div class="sources-title">📚 Fontes Consultadas</div>
+                        ${sources.map(source => `
+                            <div class="source-item">
+                                <div class="source-similarity">Similaridade: ${source.similarity}</div>
+                                <div>${source.content}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">
+                    <div>${content}</div>
+                    ${sourcesHtml}
+                </div>
+            `;
+
+            // Inserir antes do indicador de digitação
+            const typingIndicator = document.getElementById('typingIndicator');
+            messagesContainer.insertBefore(messageDiv, typingIndicator);
+
+            // Scroll para baixo
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTypingIndicator(show) {
+            const indicator = document.getElementById('typingIndicator');
+            indicator.style.display = show ? 'flex' : 'none';
+            
+            if (show) {
+                const messagesContainer = document.getElementById('chatMessages');
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        async function checkSystemStatus() {
+            try {
+                const response = await fetch('/status');
+                const status = await response.json();
+
+                // Atualizar status da IA
+                const aiIndicator = document.getElementById('aiIndicator');
+                const aiStatus = document.getElementById('aiStatus');
+                
+                if (status.openai_configured) {
+                    aiIndicator.className = 'status-indicator status-online';
+                    aiStatus.textContent = 'Configurado';
+                } else {
+                    aiIndicator.className = 'status-indicator status-offline';
+                    aiStatus.textContent = 'Não configurado';
+                }
+
+                // Verificar se há documento carregado
+                if (status.document_processor && status.document_processor.chunks_loaded > 0) {
+                    hasDocument = true;
+                    updateDocumentStatus(`${status.document_processor.chunks_loaded} chunks carregados`);
+                }
+
+            } catch (error) {
+                console.error('Erro ao verificar status:', error);
+            }
+        }
+
+        function updateDocumentStatus(status) {
+            const indicator = document.getElementById('docIndicator');
+            const statusText = document.getElementById('docStatus');
+            
+            if (hasDocument) {
+                indicator.className = 'status-indicator status-online';
+                statusText.textContent = status;
+            } else {
+                indicator.className = 'status-indicator status-offline';
+                statusText.textContent = 'Nenhum documento carregado';
+            }
+        }
+    </script>
+</body>
+</html>
